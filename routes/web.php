@@ -1,18 +1,19 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
+use App\Http\Controllers\VenueController;
+use App\Http\Controllers\EventController;
+use App\Http\Controllers\TicketController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('venues.index');
 });
+
+// Venues CRUD (SEO slug handled by Venue model getRouteKeyName)
+Route::resource('venues', VenueController::class);
+
+// Events CRUD (SEO slug handled by Event model getRouteKeyName)
+Route::resource('events', EventController::class);
+
+// Tickets CRUD (uses numeric ID by default; that's fine)
+Route::resource('tickets', TicketController::class);
