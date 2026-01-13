@@ -3,25 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Venue;
-use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Http\Requests\StoreVenueRequest;
+use App\Http\Requests\UpdateVenueRequest;
+use Illuminate\Http\Request;
 
 class VenueController extends Controller
 {
-    /**
-     * Display a listing of venues
-     * Supports filtering and sorting
-     */
     public function index(Request $request)
     {
         $query = Venue::query();
 
-        
         if ($request->filled('city')) {
             $query->where('city', 'like', '%' . $request->city . '%');
         }
 
-        // 🔃 Sorting
         if ($request->filled('sort')) {
             switch ($request->sort) {
                 case 'name':
@@ -42,80 +38,48 @@ class VenueController extends Controller
         return view('venues.index', compact('venues'));
     }
 
-    /**
-     * Show the form for creating a new venue
-     */
     public function create()
     {
         return view('venues.create');
     }
 
-    /**
-     * Store a newly created venue
-     */
-    public function store(Request $request)
+    public function store(StoreVenueRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:120',
-            'city' => 'required|string|max:80',
-            'country' => 'required|string|max:80',
-            'address' => 'nullable|string|max:200',
-            'description' => 'nullable|string|max:2000',
-        ]);
+        $data = $request->validated();
+        $data['slug'] = Str::slug($data['name']);
 
-        $validated['slug'] = Str::slug($validated['name']);
-
-        Venue::create($validated);
+        Venue::create($data);
 
         return redirect()
             ->route('venues.index')
             ->with('success', 'Venue created successfully.');
     }
 
-    /**
-     * Display a specific venue (SEO slug)
-     */
     public function show(Venue $venue)
     {
         return view('venues.show', compact('venue'));
     }
 
-    /**
-     * Show the form for editing a venue
-     */
     public function edit(Venue $venue)
     {
         return view('venues.edit', compact('venue'));
     }
 
-    /**
-     * Update a venue
-     */
-    public function update(Request $request, Venue $venue)
+    public function update(UpdateVenueRequest $request, Venue $venue)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:120',
-            'city' => 'required|string|max:80',
-            'country' => 'required|string|max:80',
-            'address' => 'nullable|string|max:200',
-            'description' => 'nullable|string|max:2000',
-        ]);
+        $data = $request->validated();
 
-        // Regenerate slug if name changes
-        if ($venue->name !== $validated['name']) {
-            $validated['slug'] = Str::slug($validated['name']);
+        if ($venue->name !== $data['name']) {
+            $data['slug'] = Str::slug($data['name']);
         }
 
-        $venue->update($validated);
+        $venue->update($data);
 
         return redirect()
             ->route('venues.index')
             ->with('success', 'Venue updated successfully.');
     }
 
-    /**
-     * Remove a venue
-     */
     public function destroy(Venue $venue)
     {
         $venue->delete();
